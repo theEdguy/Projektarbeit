@@ -74,12 +74,12 @@ Der Prototype verwendet eine hybride Suche.
 ---
 
 # 3. Der technische Lösungspfad
-## Technischer Ablauf
+## Ablauf
 
 ```text
 Alle Materialien
    |
-Chunking: ca. 500 Zeichen mit Überlappung
+Chunking: Abschnitte bis ca. 1200 Zeichen
    |
 Embeddings und semantische Suche
    |
@@ -88,12 +88,12 @@ Lexikalische Suche: Begriffe und Formeln
 Kontext für das LLM
 ```
 
-- **Chunking:** Der Text wird meist in Abschnitte mit etwa 500 Zeichen geteilt. Eine Überlappung zwischen den Abschnitten reduziert Informationsverlust an den Grenzen.
+- **Chunking:** Der Text wird in Abschnitte von maximal etwa 1200 Zeichen geteilt. Die Trennung erfolgt bevorzugt an Satz- und Absatzgrenzen; jeder Chunk behält seine Position im Quelldokument.
 - **Embeddings:** Ein SLM oder LLM wandelt Text und Suchanfrage in Vektoren um. Dadurch können inhaltlich ähnliche Textstellen gefunden werden.
 - **Semantische Suche:** Die Vektoren werden verglichen. Die Suche berücksichtigt damit die Bedeutung einer Frage.
 - **Lexikalische Suche:** Eine zusätzliche Suche findet exakte Fachbegriffe, Abkürzungen und Formeln.
 - **Hybride Suche:** Die Ergebnisse beider Suchen werden zusammengeführt. Das LLM erhält dadurch mit wenigen Suchschritten den passenden Kontext.
-- **Modell:** Das Sprachmodell ist austauschbar. Mistral kann als kostenfrei nutzbare Option verwendet werden. Auch andere Modelle sind möglich, wenn das benötigte Embedding-Modell auf der RAG-Seite verfügbar ist. Bei Anforderungen an den Datenschutz kann ein Modell mit Hosting in Europa gewählt werden.
+- **Modell:** Das Sprachmodell ist austauschbar. Im MVP stammen Antwortmodell, OCR und Embeddings von Mistral; die Schnittstellen bleiben dabei gleich und sind austauschbar. Bei Anforderungen an den Datenschutz kann ein Modell mit Hosting in Europa gewählt werden.
 
 **Ergebnis:** Das LLM erhält einen kleinen und passenden Kontext.
 
@@ -102,11 +102,9 @@ Kontext für das LLM
 # 4. OCR und Textaufbereitung
 ## Verarbeitung von Folien
 
-Folien können Text, Bilder, Tabellen, Formeln und Screenshots enthalten.
-
-OCR erkennt Text in Bildern und gescannten PDF-Seiten.
-
-Die erkannten Inhalte werden als strukturierter Text gespeichert.
+- Folien können Text, Bilder, Tabellen, Formeln und Screenshots enthalten.
+- OCR erkennt Text in Bildern und gescannten PDF-Seiten.
+- Die erkannten Inhalte werden als strukturierter Text gespeichert.
 
 Gespeichert werden zusätzlich:
 
@@ -117,38 +115,117 @@ Gespeichert werden zusätzlich:
 
 **Verarbeitung:** OCR oder Markdown-Parser -> Textabschnitte -> Embeddings und Suchindex -> LLM-Kontext.
 
+Im MVP: hybrider PDF-Extractor; OCR, Embeddings und Antworten laufen über Mistral-APIs.
+
 ---
 
 # 5. Vorteile für die Hochschule
 
 ### Einheitliche Datenbasis
 
-- Vorlesungsfolien werden mit Überschriftenhierarchien, Alternativtexten und Metadaten erstellt.
-- Die Hochschule stellt die geprüften Vorlesungsdaten zentral bereit.
-- Dozierende entscheiden, welche Inhalte für ein Fach freigegeben werden.
+- Vorlesungsfolien könnten mit Überschriftenhierarchien, Alternativtexten und Metadaten erstellt werden.
+- Die Hochschule könnte die geprüften Vorlesungsdaten zentral bereitstellen.
+- Dozierende könnten festlegen, welche Inhalte für ein Fach freigegeben werden.
 
-### Fachweiser Zugriff über einen MCP-Prototyp
+### Fachbezogener Zugriff über einen MCP-Prototyp
 
-- Der Zugriff erfolgt über einen MCP-Prototyp (Model Context Protocol).
-- Ein Server verbindet die MCP-Schnittstellen mit der gemeinsamen Datenbank.
-- Die Datenbank bleibt gleich; die Inhalte werden nach Vorlesung und Fach getrennt.
-- Für jedes Fach wird festgelegt, welche Vorlesungsdaten verwendet werden.
-- Alle Studierenden eines Fachs erhalten denselben geprüften Wissensstand.
-- Zugriffe können über Passwörter eingeschränkt werden.
-- Quellen und verwendete Modelle können zentral kontrolliert werden.
+- Der Zugriff könnte über einen MCP-Prototyp (Model Context Protocol) erfolgen.
+- Ein Server würde die MCP-Schnittstellen mit der gemeinsamen Datenbank verbinden.
+- Die Datenbank bliebe gleich; die Inhalte würden nach Vorlesung und Fach getrennt.
+- Alle Studierenden eines Fachs würden denselben geprüften Wissensstand erhalten.
+- Zugriffe könnten über Projektkennungen und Rollen eingeschränkt werden; Passwörter je Fach wären als Erweiterung möglich.
+- Quellen und verwendete Modelle könnten zentral kontrolliert werden.
 
 ### Einsatz in Laboren
 
-- Studierende können in Laborveranstaltungen ein eigenes RAG-System aufbauen.
-- Dabei bearbeiten sie praktische Aufgaben aus den Bereichen Datenbanken, Kommunikationsnetze und verteilte Systeme.
-- Mögliche Bestandteile sind Datenaufbereitung, Chunking, Embeddings, Vektorsuche und MCP-Kommunikation.
+- Studierende könnten in Laborveranstaltungen ein eigenes RAG-System aufbauen.
+- Dabei würden sie praktische Aufgaben aus den Bereichen Datenbanken, Kommunikationsnetze und verteilte Systeme bearbeiten.
+- Mögliche Bestandteile wären Datenaufbereitung, Chunking, Embeddings, Vektorsuche und MCP-Kommunikation.
 
-
-Die Nutzung kann als Angebot bereitgestellt werden. Professoren und Studierende müssen sie nicht verwenden.
+Die Nutzung könnte als Angebot bereitgestellt werden. Professoren und Studierende müssten sie nicht verwenden.
 
 ---
 
-# 6. Gesamt-Workflow
+# 6. Tokenreduktion und Nachhaltigkeit
+## Warum sich zentrale Aufbereitung auszahlt
+
+- Beim Ingestieren werden aus unstrukturierten Vorlesungsdaten einmalig strukturierte, durchsuchbare Daten erzeugt: Elemente, Chunks, Metadaten und Vektoren.
+- Statt kompletter Unterlagen würde nur der passende Ausschnitt (Top-K-Chunks) an das Modell übergeben.
+- Die Aufbereitung würde nicht bei jeder Anfrage wiederholt: weniger Tokens, geringere Kosten, weniger Energieverbrauch.
+- Die Umwelt würde geschont, da die Vorlesungsdaten nur einmal in strukturierte Daten aufbereitet werden.
+- Studierende ohne aktiven Zugang zu eigenen KI-Diensten wären weniger benachteiligt: alle erhielten denselben zentralen Service.
+- Der Umgang mit KI würde besser gelehrt: Antworten beruhen auf geprüften Quellen und tragen Quellenangaben.
+
+---
+
+# 7. Systemgrenze und Systemkontext
+## Was zum Prototype gehört und was nicht
+
+```mermaid
+flowchart LR
+    R["Reader / Admin"]
+    J["Ingestion-Job"]
+    OC["OpenClaw (KI-Client)"]
+    F["Dateisystem / Quellen"]
+    MI["Mistral (Embedding, OCR, Antwort)"]
+    subgraph RAG["RAG-Systemgrenze"]
+        I["Ingestion-API"]
+        Q["Query-API"]
+        M["MCP-Server (Stdio)"]
+        P["Worker, Parser, Chunker, Retrieval"]
+        D[("PostgreSQL 16 + pgvector")]
+        M --> Q
+        I --> P
+        Q --> P
+        P --> D
+    end
+    R -->|"Frage"| Q
+    J -->|"Lauf starten"| I
+    OC -->|"MCP: rag_query, rag_ingest"| M
+    F --> I
+    P -->|"Embedding, OCR"| MI
+    P -->|"Antwort (optional)"| MI
+```
+
+- **Innerhalb:** Ingestion, Lineage, Speicherung, Retrieval, Kontext- und Zitationsprüfung, MCP-Server.
+- **Außerhalb:** Nutzeroberfläche, Markdown-Quellen im Dateisystem, Mistral-API (Embedding, OCR, Antwort), Betriebsumgebung.
+- **API-only-Regel:** Die Datenbank ist kein Integrationsweg; alle Zugriffe laufen über die Ingestion- und Query-API.
+
+---
+
+# 8. Akteure und Rollen
+## Wer darf was
+
+| Akteur | Rolle im Prototype | darf |
+|---|---|---|
+| Studierende | `Reader` | Fragen stellen, Treffer mit Quellen lesen |
+| Dozierende / Projektleitung | `Admin` | Ingestion starten oder freigeben, Versionen verwalten |
+| Ingestion-/Wartungsjob | technischer Akteur | autorisierte Läufe automatisiert ausführen |
+| OpenClaw (KI-Client) | externer Client | lesender Wissenszugriff über MCP |
+| Dateisystem, Datenbank, Mistral-Dienste | externe Systeme | Quellen, Persistenz, Vektoren, OCR und Antworten bereitstellen |
+
+- Niemand ändert Chunks, Embeddings oder Versionen direkt; Schreibzugriffe laufen ausschließlich über die Ingestion-API.
+- Eine projektbezogene Rollenzuordnung geht einer globalen Zuordnung vor.
+
+---
+
+# 9. Use Cases und MVP-Grenzen
+## Was der Prototype abdecken soll
+
+| Use Case | Inhalt | Akteur | Status im MVP |
+|---|---|---|---|
+| UC-01 | Multimodale Abfrage und Kontextfusion: hybride Suche, RRF-Fusion, quellenbelegte Treffer | RAG-Nutzer (`Reader`), später autorisierter KI-Client | Neubau: M3-M5 |
+| UC-02 | Ingestion und Lineage: Markdown-Dokumente, idempotent und nachvollziehbar | `Admin` oder autorisierter Ingestion-Job | Neubau: M1-M2 |
+| UC-03 | Wissenskuratierung und Qualitätsverwaltung | Wissens-Kurator (`Admin`) | vertagt, nicht Teil des MVP |
+| UC-04 | Persönlicher Zettelkasten über Korrekturhinweise | externe Zettelkasten-Anwendung | entfällt im MVP (keine Correction-API) |
+
+Nicht Teil des MVP: Aufgabengenerierung, Anki-Export, Passwörter je Fach und die Correction-API.
+
+Der gesamte RAG wird neu und ohne KI-Unterstützung implementiert; die Reihenfolge steht in den Meilensteinen (Folie 19).
+
+---
+
+# 10. Gesamt-Workflow
 ## Ablauf und Systemschichten
 
 ```text
@@ -167,9 +244,11 @@ OpenClaw: Dialog, Aufgaben, Anki
 
 ### Systemschichten
 
-`Chat-Interface` -> `OpenClaw` -> `MCP-Prototyp` -> `PostgreSQL + pgvector`
+`OpenClaw` -> `MCP-Server (Stdio)` -> `RAG-HTTP-API` -> `PostgreSQL + pgvector`
 
 Das RAG-System liefert Textstellen mit Quellen. OpenClaw verwendet diese Textstellen für Dialog und Aufgaben.
+
+**Randnotiz:** OpenClaw steht hier als Abstraktion für den KI-Client. Der Prototype spricht jeden OpenAI-kompatiblen Client an. Ein eigener Client (Hermes) wäre später denkbar, wäre für den MVP aber zu viel.
 
 ### Vereinfachter Ablauf einer Anfrage
 
@@ -198,12 +277,30 @@ OpenClaw nimmt die Frage entgegen und gibt sie an das RAG-LLM weiter. Das RAG-LL
 
 ---
 
-# 7. Ingestion und Retrieval
+# 11. Schnittstellen
+## APIs, Ports und Protokolle
+
+| Schnittstelle | Richtung | Vertrag |
+|---|---|---|
+| Ingestion-API | `Admin`/Job -> RAG | `POST /v1/ingestions`: Request -> Lauf, Chunks, Embeddings |
+| Query-API | Client -> RAG (lesend) | `POST /v1/queries`: Frage -> Top-K-Chunks mit Score, Rang und Quelle |
+| Health | Client -> RAG (lesend) | `GET /health`: Erreichbarkeit |
+| MCP über Stdio | KI-Client -> RAG | JSON-RPC-Tools `rag_ingest`, `rag_query`, `rag_health` |
+| Embedding-Port | RAG -> Mistral | HTTP-Endpunkt, `mistral-embed`, 1024 Dimensionen |
+| Antwort-Port | RAG -> Mistral | OpenAI-kompatibler Endpunkt, Mistral-Chat-Modell |
+
+- Interne Ports (`DocumentKnowledgePort`, `RetrievalPort`) kapseln die Module.
+- Kein Modul greift direkt auf den Store eines anderen Moduls zu.
+
+---
+
+# 12. Ingestion und Retrieval
 ## Datenaufnahme und Suche
 
 ### Markdown- und Text-Chunking
 
-- Der Text wird in Abschnitte mit etwa 500 Zeichen und Überlappung geteilt.
+- Beim Ingestieren werden aus unstrukturierten Vorlesungsdaten strukturierte, durchsuchbare Daten erzeugt.
+- Der Text wird in Abschnitte von maximal etwa 1200 Zeichen geteilt; die Trennung erfolgt an Satz- und Absatzgrenzen.
 - Überschriften werden als Metadaten übernommen.
 - Jeder Chunk trägt Foliennummer, Kapitelpfad und Quelle.
 - Formeln und Fachbegriffe bleiben im passenden Textabschnitt.
@@ -211,14 +308,161 @@ OpenClaw nimmt die Frage entgegen und gibt sie an das RAG-LLM weiter. Das RAG-LL
 ### Suche
 
 - **Semantisch:** Embeddings werden in pgvector gespeichert und über HNSW gesucht.
-- **Lexikalisch:** PostgreSQL sucht über einen Trigrammindex nach exakten Begriffen.
+- **Lexikalisch:** PostgreSQL-Volltextsuche (`to_tsvector`, `ts_rank_cd`) findet exakte Begriffe.
 - **Kombination:** Reciprocal Rank Fusion (RRF) führt beide Ergebnislisten zusammen.
+- **Modi:** `hybrid`, `semantic`, `lexical`, `retrieval-only`.
 
 $$RRF(d) = \sum_{m \in M} \frac{1}{k + rank_m(d)}, \quad k=60$$
 
 ---
 
-# 8. Lerninteraktion
+# 13. Datenmodell (reduziert)
+## Lineage vom Quellelement zum Embedding
+
+```mermaid
+erDiagram
+    DOCUMENT ||--o{ SOURCE_DOCUMENT_VERSION : hat
+    SOURCE_DOCUMENT_VERSION ||--o{ PROCESSED_DOCUMENT_VERSION : verarbeitet
+    PROCESSED_DOCUMENT_VERSION ||--o{ DOCUMENT_ELEMENT : enthaelt
+    DOCUMENT_ELEMENT ||--o{ CHUNK : erzeugt
+    CHUNK ||--o{ EMBEDDING : traegt
+    QUERY_RUN ||--o{ QUERY_RESULT : protokolliert
+    CHUNK ||--o{ QUERY_RESULT : zitiert
+
+    SOURCE_DOCUMENT_VERSION {
+        string source_hash UK
+        uuid supersedes_version_id FK
+    }
+    EMBEDDING {
+        string provider
+        string model_name
+        int dimensions
+    }
+```
+
+- `source_hash` macht die Ingestion idempotent: gleiche Inhalte werden nicht doppelt verarbeitet.
+- Neue Versionen überschreiben alte nicht; `supersedes_version_id` hält die Versionskette nachvollziehbar.
+- Abfragen werden in `query_runs` und `query_results` mit Score, Rang und Quelle protokolliert.
+
+---
+
+# 14. Datenmodell: Entitäten der Ingestion
+## Von der Quelle zur verarbeiteten Version
+
+```mermaid
+erDiagram
+    DOCUMENT {
+        uuid document_id PK
+        string project_id
+        string logical_name
+        string source_key
+    }
+    INGESTION_RUN {
+        uuid ingestion_run_id PK
+        uuid started_by FK
+        string status
+        timestamp run_started_at
+        timestamp run_finished_at
+    }
+    SOURCE_DOCUMENT_VERSION {
+        uuid source_document_version_id PK
+        uuid document_id FK
+        uuid ingestion_run_id FK
+        int version_number
+        string file_path
+        string source_hash UK
+        string category
+        string status
+        uuid supersedes_version_id FK
+    }
+    PROCESSED_DOCUMENT_VERSION {
+        uuid processed_document_version_id PK
+        uuid source_document_version_id FK
+        string parser_type
+        string parser_version
+        string config_hash
+        string status
+    }
+```
+
+| Entität | Bedeutung |
+|---|---|
+| `DOCUMENT` | Ein logisches Dokument je Fach (Projektkennung) und Quelle, identifiziert über `source_key`. |
+| `INGESTION_RUN` | Ein Ingestion-Lauf mit Status (`NEW`, `RUNNING`, `COMPLETED`, `FAILED`, ...) und Zeitstempeln. |
+| `SOURCE_DOCUMENT_VERSION` | Unveränderliche Version einer Quelle: Hash, Dateipfad, Kategorie, Status und Vorgänger-Version. |
+| `PROCESSED_DOCUMENT_VERSION` | Verarbeitungsergebnis: welcher Parser in welcher Version und Konfiguration gelaufen ist. |
+
+---
+
+# 15. Datenmodell: Inhalte und Suche
+## Vom Element über den Chunk zum Treffer
+
+```mermaid
+erDiagram
+    DOCUMENT_ELEMENT {
+        uuid element_id PK
+        uuid processed_document_version_id FK
+        string element_type
+        int ordinal
+        string content
+        json payload
+        int source_start
+        int source_end
+        int page_num
+    }
+    CHUNK {
+        uuid chunk_id PK
+        uuid element_id FK
+        int ordinal
+        string content
+        string modality
+        string status
+        int source_start
+        int source_end
+    }
+    EMBEDDING {
+        uuid embedding_id PK
+        uuid chunk_id FK
+        string provider
+        string model_name
+        int dimensions
+        vector vector
+        string input_hash
+        string status
+    }
+    QUERY_RUN {
+        uuid query_run_id PK
+        uuid user_id FK
+        string project_id
+        string query_text
+        string response_status
+    }
+    QUERY_RESULT {
+        uuid result_id PK
+        uuid query_run_id FK
+        string source_kind
+        uuid chunk_id FK
+        string backend
+        double backend_score
+        int backend_rank
+        double fusion_score
+        int final_rank
+        string source_locator
+        string source_status
+    }
+```
+
+| Entität | Bedeutung |
+|---|---|
+| `DOCUMENT_ELEMENT` | Strukturierte Elemente je verarbeiteter Version: `TEXT`, `HEADING`, `TABLE`, `IMAGE`, `FORMULA`, `TOC`; mit Ordinalzahl, Seitennummer und Position im Quelldokument. |
+| `CHUNK` | Suchbarer Textabschnitt je Element mit Modalität (`PROSE_TEXT`, `STRUCTURED_TABLE`, `VISUAL_DOC`) und Status. |
+| `EMBEDDING` | Vektor je Chunk in pgvector: Provider, Modell, Dimensionen, Input-Hash und Status. |
+| `QUERY_RUN` | Protokollierte Anfrage mit Antwortstatus, z. B. `ANSWERED`, `NOT_ANSWERABLE`, `CONFLICTING_EVIDENCE`. |
+| `QUERY_RESULT` | Ein einzelner Treffer: Backend, Score, Rang nach Fusion und Quellen-Locator. |
+
+---
+
+# 16. Lerninteraktion
 ## Dialog mit OpenClaw
 
 OpenClaw verarbeitet die gefundenen Textstellen und führt einen Dialog mit dem Studierenden:
@@ -230,11 +474,11 @@ OpenClaw verarbeitet die gefundenen Textstellen und führt einen Dialog mit dem 
 
 ### Antwortgrundlage
 
-Antworten sollen nur aus den abgerufenen Vorlesungsdaten erzeugt werden.
+Antworten sollen nur aus den abgerufenen Vorlesungsdaten erzeugt werden. Der Antwortgenerator im Prototype erzwingt deshalb Quellenangaben je Aussage und antwortet nicht, wenn der Kontext nicht ausreicht.
 
 ---
 
-# 9. Aufgaben und Anki
+# 17. Aufgaben und Anki
 ## Generierung aus Vorlesungsdaten
 
 Aus den abgerufenen Textstellen können erzeugt werden:
@@ -252,9 +496,11 @@ Frage;Antwort;Quelle
 
 Das RAG-System liefert die Textstellen. OpenClaw erzeugt daraus Aufgaben und Karten.
 
+**MVP-Grenze:** Aufgabengenerierung und Anki-Export sind noch nicht implementiert; sie folgen in Meilenstein M9 auf Basis der erzeugten Chunks.
+
 ---
 
-# 10. MCP-Prototyp
+# 18. MCP-Prototyp
 ## Tools für Datenaufnahme und Suche
 
 ### Model Context Protocol über Stdio
@@ -264,20 +510,45 @@ Der Prototyp stellt die Verbindung zwischen dem KI-Client und dem RAG-System her
 | Tool | Eingabe | Ergebnis |
 |---|---|---|
 | `rag_ingest` | `source_path`, `project_id` | Indexierte Markdown-Chunks |
-| `rag_query` | `query_text`, `retrieval_mode` | Top-K-Chunks mit Quellen |
+| `rag_query` | `query_text`, `retrieval_mode`, `result_limit` | Top-K-Chunks mit Quellen |
+| `rag_health` | – | Erreichbarkeit von RAG-API und Embedding-Endpunkt |
 
 ### Technische Angaben
 
 - Validierung über typisierte Dataclasses.
-- Einheitliche JSON-RPC-Fehler: `timeout`, `validation_error`.
-- Persistenz in PostgreSQL 16: `document_versions`, `document_chunks`.
-- Ein MCP-Prototyp verbindet die Tools mit der gemeinsamen Datenbank.
+- Transportneutrale Fehlerklassen: `AuthorizationError`, `SourceValidationError`, `DependencyUnavailableError`, `CitationValidationError`.
+- Persistenz in PostgreSQL 16: `source_document_versions`, `chunks`, `embeddings`.
+- Der MCP-Server verbindet die Tools über eine HTTP-API mit der gemeinsamen Datenbank.
 - Die Inhalte werden über eine Fach- oder Vorlesungskennung getrennt.
-- Ein Passwort kann den Zugriff auf einzelne Fächer einschränken.
+- Der Zugriff wird über Projektkennungen und Rollen geregelt; Passwörter je Fach sind als Erweiterung vorgesehen.
 
 ---
 
-# 11. Mögliche Erweiterung
+# 19. Meilensteine
+## Neubau des RAG in aufeinander aufbauenden Schritten
+
+Der RAG wird vollständig neu und ohne KI-Unterstützung implementiert. Jeder Meilenstein baut auf dem vorherigen auf und endet mit einem lauffähigen Zwischenstand.
+
+| Meilenstein | Inhalt | Ergebnis |
+|---|---|---|
+| M1 | Datenbasis: PostgreSQL 16 + pgvector, Schema und lokale Umgebung | Datenbank mit den Lineage-Tabellen steht |
+| M2 | Ingestion: Markdown-Parser, Chunking (max. ca. 1200 Zeichen), Idempotenz per Hash | Dokumente liegen als Chunks mit Quelle vor |
+| M3 | Embeddings: `mistral-embed` anbinden, Vektoren speichern, HNSW-Index | Semantische Suche ist möglich |
+| M4 | Hybride Suche: Volltextsuche und RRF-Fusion, Suchmodi | Top-K-Chunks mit Score, Rang und Quelle |
+| M5 | Antwortgenerator: Mistral-Chat-Modell mit Quellenpflicht | Antwort nur aus Vorlesungsdaten, mit Status |
+| M6 | HTTP-API: Ingestion- und Query-Endpunkte, Health | Der RAG ist über HTTP nutzbar |
+| M7 | MCP-Server über Stdio: `rag_ingest`, `rag_query`, `rag_health` | Ein KI-Client kann die Tools aufrufen |
+| M8 | OpenClaw anbinden: Systemprompt mit Quellenpflicht je Aussage | End-to-End: Frage -> Antwort mit Folienquellen |
+| M9 | Lernfunktionen: Aufgabengenerierung und Anki-Export | Aufgaben und Karten aus Vorlesungsdaten |
+| M10 | OCR-Pipeline: Folien und PDFs über Mistral-OCR zu Markdown | Auch Nicht-Markdown-Quellen werden durchsuchbar |
+| M11 | Zugriffsschutz: Rollen je Fach, Passwörter | Absicherung für den Hochschulbetrieb |
+
+- Nach jedem Meilenstein liegt ein lauffähiger Zwischenstand vor; es kann jederzeit an einem Ergebnis gestoppt werden.
+- Der Wissensgraph (Folie 20) ist bewusst außerhalb der Meilensteine.
+
+---
+
+# 20. Mögliche Erweiterung
 ## Persönlicher Wissensgraph
 
 Ein persönlicher Wissensgraph ist nicht Teil des Prototypen. Er kann bei ausreichender Zeit und verfügbaren Ressourcen als Erweiterung untersucht werden.
